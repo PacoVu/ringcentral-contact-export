@@ -1,6 +1,5 @@
 const User = require('./usershandler.js')
 require('dotenv').load()
-const request = require('request');
 var users = []
 
 function getUserIndex(id){
