@@ -1,5 +1,5 @@
 {
-  "name": "rc-contacts",
+  "name": "ringcentralc-contact-export",
   "version": "1.0.0",
   "description": "Export company contacts",
   "main": "index.js",
