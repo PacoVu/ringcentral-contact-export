@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>RingCentral Smart Transcription</title>
+        <title>RingCentral Company Contacts</title>
         <link href="./img/favicon.ico" type="image/vnd.microsoft.icon" rel="shortcut icon">
         <link href="./img/favicon.ico" type="image/vnd.microsoft.icon" rel="icon">
         <script src="./js/jquery-3.1.0.min.js"></script>
@@ -17,48 +17,30 @@
       <nav class="navbar navbar-default no-border">
         <span class="left-middle-align">
           <span class="rclogo"><a href="/"><img alt="Brand" src="img/ringcentral.png" height="40"></a></span>&nbsp;&nbsp;
-          <span class="title">Smart Transcription</span>
+          <span class="title">Export Company Contacts</span>
         </span>
         <ul class="nav navbar-nav navbar-right middle-align">
-          <li><a href="/about">About</a></li>
+          <li><a href="javascript:history.back()">Back</a></li>
         </ul>
       </nav>
       <section id='content'>
         <body>
-          <h1>RingCentral call recordings and voicemails analytics</h1>
+          <h2>Export your RingCentral company contacts book to AWS contacts book</h2>
           <div>
           <p>
-            This demo Web application allows you access your RingCentral account, read call recordings and voicemail messages. The audio content
-            will be transcribed then the transcript will be saved to a local database together with the call's metadata such as the date, the caller's
-            and the callee's numbers.</br>
+            This is a temporary tool to sync your RingCentral contacts with your AWS contacts. After syncing the contacts books, you will be enable
+            to RingCentral Alexa for business making a call by name.</br>
           </p>
-          <p>
-            Call recording and voicemail transcript will be analyzed and transformed from an unstructured content into a structured data using applied machine learning for data analitics from IBM Watson, Google Cloud Platform and Haven Ondemand. Each call recording and voicemail will be also automatically categorized.
-          </p>
-          </p>
-            Demo main features:
-          </p>
+          <h2>
+            Instructions:
+          </h2>
             <ol>
-              <li>Transcribe speech-to-text from call recordings and voicemail</li>
-              <li>Allow users to search for a word or phrase from calls' transcripts.</li>
-              <li>Allow users to search for calls from keywords, from number, to number, extension number and category.</li>
-              <li>Play an audio content with stylish synchronized transcript.</li>
-              <li>Enable users to interact with the audio content from the transcript by clicking on any word from the text to fast-forward or fast-backward to the selected word.</li>
-              <li>Enable instant search for a word from the transcript and fast-forward to that spoken word in the audio content</li>
-              <li>Highlight positive and negative human opinions in the speech.</li>
-              <li>Highlight key concepts and allow users to easily navigate to related information from Wikipedia and online news channels.</li>
-              <li>Browse and see summaries of famous people, famous places and famous companies mentioned in the transcript.</li>
-              <li>Extract actionable items from the speech.</li>
+              <li>Login your AWS account and <a href="https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/">create an IAM access key</a></li>
+              <li>Copy the credentials and specify them in the form acordinglly.</li>
+              <li>Click the <b>Read Company Contacs</b> button</li>
+              <li>From the contacts list, select contacts you want to export to your AWS contacts book</li>
+              <li>Click the <b> Export</b> button to export selected contacts</li>
             </ol>
-            <p>
-            Technologies:
-            <ul>
-              <li>RingCentral Platform</li>
-              <li>IMB Watson</li>
-              <li>Google Cloud Platform</li>
-              <li>Haven Ondemand platform</li>
-          </ul>
-            </p>
           </div>
         </body>
       </section>

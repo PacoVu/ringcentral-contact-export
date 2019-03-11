@@ -1,245 +1,177 @@
-var deleteArray = new Array()
-var isExtensionsChanged = false
+var totalContacts = 0
+var totalSelectableContacts = 0
 
-function initForReadLog() {
-  $( "#fromdatepicker" ).datepicker({ dateFormat: "yy-mm-dd"});
-  $( "#todatepicker" ).datepicker({dateFormat: "yy-mm-dd"});
-  var pastMonth = new Date();
-  var day = pastMonth.getDate()
-  var month = pastMonth.getMonth() - 1
-  var year = pastMonth.getFullYear()
-  if (month < 0){
-    month = 11
-    year -= 1
-  }
-  $( "#fromdatepicker" ).datepicker('setDate', new Date(year, month, day));
-  $( "#todatepicker" ).datepicker('setDate', new Date());
-}
-function initForRecordedCalls() {
+function init() {
   var height = $("#menu_header").height()
-  height += $("#search_bar").height()
-  height += $("#call_list_header").height()
+  height += $("#button_header").height()
+  height += $("#table_header").height()
   height += $("#footer").height()
-
-  var h = $(window).height() - (height + 125);
-  $("#call_items").height(h)
+  var h = $(window).height() - (height + 50);
+  $("#contact_list").height(h)
 
   window.onresize = function() {
     var height = $("#menu_header").height()
-    height += $("#search_bar").height()
-    height += $("#call_list_header").height()
+    height += $("#button_header").height()
+    height += $("#table_header").height()
     height += $("#footer").height()
-
-    var h = $(window).height() - (height + 125);
-    $("#call_items").height(h)
+    var h = $(window).height() - (height + 50);
+    $("#contact_list").height(h)
   }
 
-  if (window.navigator.userAgent.indexOf('Win') > -1) {
-    var list = window.document.getElementById('call_items');
-    if (list.scrollHeight > list.offsetHeight) {
-      $('.sentiment_icon_td').css('padding-left', '23px');
+  for (var i=0; i<window.contactList.length; i++){
+    if (window.contactList[i].ExistInAWS == false){
+      totalSelectableContacts++
     }
   }
+  $("#indication").text("Selected: " + 0 +"/" + totalSelectableContacts + " contacts.")
+}
 
-  $('#call_items').find('.subject_edit_icon').click(function (e) {
-    e.stopPropagation();
-    var textElem = $(this).parent().find('span');
-    var inputElem = $(this).parent().find('input');
-    var uid = $(this).data('uid');
-    if ($(this).attr('src').indexOf('edit') > -1) {
-      textElem.hide();
-      inputElem.show();
-      $(this).attr("src", "img/accept.png");
-    } else {
-      textElem.show();
-      inputElem.hide();
-      if (inputElem.val() !== textElem.text()) {
-        textElem.html(inputElem.val());
-        var posting = $.post( "setsubject", {
-          uid: uid,
-          subject: inputElem.val()
-        });
-        posting.done(function( response ) {
-          var res = JSON.parse(response)
-          if (res.status == "error") {
-            alert(res.calllog_error)
-          }
-        });
-        posting.fail(function(response){
-          alert(response.statusText)
-        });
-      }
-      $(this).attr("src", "img/edit.png");
-    }
-  });
-
-  $('#call_items').find('.subject_edit_input').click(function(e) {
-    e.stopPropagation();
-  });
-
-  $('#call_items').find('.subject_edit_input').click(function(e) {
-    e.stopPropagation();
-  });
-
-  $('#call_items').find('tr').click( function() {
-    var index = $(this).index()
-    if (window.calls[index].processed == 1){
-      var isKeyword = $(this).find('.transcript_brief').find('.keyword').length > 0;
-      var searchWord;
-      if (!isKeyword) {
-        //searchWord = $(this).find('.transcript_brief').data('original-text').replace('...', '').trim();
-        searchWord = $(this).find('.transcript_brief').data('original-text').trim();
-      }
-      openAnalyzed(window.calls[index].uid, searchWord)
-    }else if (window.calls[index].processed == 0) {
-      var r = confirm("This content has not been transcribed yet.Do you want to transcribe it now?");
-      if (r == true) {
-        transcribe(window.calls[index].uid, window.calls[index].call_type, window.calls[index].recording_url)
-      }
-    }else{
-      var r = confirm("Transcribing is in progress. Do you want to cancel the transcribing process?");
-      if (r == true) {
-        cancelTranscribe(window.calls[index].uid)
-      }else{
-        if (checkTimer == null)
-          startPolling(window.calls[index].uid)
-        else {
-          window.clearInterval(checkTimer)
-          checkTimer = null
+function exportContacts(){
+  var contactList = []
+  for (var contact of window.contactList){
+      if (contact.Selected){
+        var item = {
+          'LastName': contact.LastName,
+          'FirstName': contact.FirstName,
+          'DisplayName': contact.DisplayName,
+          'PhoneNumber': contact.PhoneNumber
         }
+        contactList.push(item)
       }
-      //alert("Analysis is not available.")
-    }
-  });
-
-  $("#search").focus()
-  $("#search").select()
-  $('#extensionnumbers').on('hidden.bs.select', function () {
-    if (window.location.pathname === '/readlog') {
-      return;
-    }
-    if (isExtensionsChanged) {
-      startSearch();
-    }
-  });
+  }
+  if (contactList.length == 0)
+    return alert("Please select contact(s) to export!")
+  else{
+    $("#export_contact").prop("disabled", true);
+    $("#exportIcon").css('display', 'inline');
+    var configs =  {}
+    configs['contacts'] = JSON.stringify(contactList)
+    var url = "exportcontacts"
+    var posting = $.post( url, configs );
+    posting.done(function( response ) {
+      var res = JSON.parse(response)
+      if (res.status != "ok") {
+        alert(res.calllog_error)
+      }else{
+        window.location = "exportcontact"
+      }
+    });
+    posting.fail(function(response){
+      alert(response.statusText);
+    });
+  }
 }
 function selectionHandler(elm){
-  if ($(elm).prop("checked")){
-    deleteArray = []
-    for (var item of calls){
-      var eid = "#sel_"+ item.uid
-      $(eid).prop('checked', true);
-      var item = {}
-      item['id'] = item.uid
-      item['type'] = item.type
-      item['rec_id'] = item.rec_id
-      deleteArray.push(item)
+    var selected = false
+    if ($(elm).prop("checked")){
+      selected = true
     }
-  }else{
-    for (var item of window.calls){
-      var eid = "#sel_"+ item.uid
-      $(eid).prop('checked', false);
+    for (var i=0; i<window.contactList.length; i++){
+      if (window.contactList[i].ExistInAWS == false){
+        var eid = "#sel_"+ window.contactList[i].Id
+        $(eid).prop('checked', selected);
+        window.contactList[i].Selected = selected;
+      }
     }
-    deleteArray = []
-  }
+    updateSelectionCount()
 }
+
+function selectForSync(elm, id){
+  var eid = "#sel_"+ id
+  if ($(eid).prop("checked")){
+    window.contactList[id].Selected = true;
+  }else{
+    window.contactList[id].Selected = false;
+  }
+  updateSelectionCount()
+}
+function updateSelectionCount(){
+  var selectionCount = 0
+  for (var i=0; i<window.contactList.length; i++){
+    if (window.contactList[i].Selected == true){
+      selectionCount++
+    }
+  }
+  $("#indication").text("Selected: " + selectionCount +"/" + totalSelectableContacts + " contacts.")
+}
+
 function logout(){
   window.location.href = "index?n=1"
 }
-function selectSelectText(){
-  $("#search").select()
-}
-
-function openAnalyzed(id, searchWord){
-  var search = $("#search").val()
-  post_to_url('/analyze', {
-    CallId: id,
-    searchWord: searchWord ? searchWord : search,
-    searchArg: search
-  }, 'post');
-}
-
-function post_to_url(path, params, method) {
-    method = method || "post";
-    var form = document.createElement("form");
-    form.setAttribute("method", method);
-    form.setAttribute("action", path);
-    for(var key in params) {
-        if(params.hasOwnProperty(key)) {
-            var hiddenField = document.createElement("input");
-            hiddenField.setAttribute("type", "hidden");
-            hiddenField.setAttribute("name", key);
-            hiddenField.setAttribute("value", params[key]);
-
-            form.appendChild(hiddenField);
-         }
-    }
-    document.body.appendChild(form);
-    form.submit();
-}
 
 function readContacts(){
+  $("#readcontacts").prop("disabled", true);
+  $("#logginIcon").css('display', 'inline');
   var configs = {}
   configs['accessKeyId'] = $("#access_keyid").val()
   configs['secretAccessKey'] = $("#secret_access_key").val()
   configs['region'] = $('#region').val();
-
   var url = "readcompanycontacts"
-  var posting = $.post(url, configs);
+  var posting = $.post( url, configs );
   posting.done(function( response ) {
-    alert(response)
     var res = JSON.parse(response)
     if (res.status != "ok") {
+      $("#readcontacts").prop("disabled", false);
+      $("#logginIcon").css('display', 'none');
       alert(res.message)
     }else{
-      alert(res.message)
+      window.location = "exportcontact"
     }
   });
   posting.fail(function(response){
-    alert(response.statusText);
+    $("#readcontacts").prop("disabled", false);
+    $("#logginIcon").css('display', 'none');
+    alert("Error. Please try again.");
   });
 }
 
-function test(){
-  var configs = {}
-  configs['accessKeyId'] = $("#access_keyid").val()
-  configs['secretAccessKey'] = $("#secret_access_key").val()
-  configs['region'] = $('#region').val();
-
-  var url = "test"
-  var posting = $.post(url, configs);
-  posting.done(function( response ) {
-    alert(response)
-    var res = JSON.parse(response)
-    if (res.status != "ok") {
-      alert(res.message)
-    }else{
-      alert(res.message)
+function disableAllInput(disable){
+  var elems = document.getElementsByTagName('button');
+  var len = elems.length;
+  if (disable == true){
+    for (var i = 0; i < len; i++) {
+        elems[i].disabled = true;
     }
-  });
-  posting.fail(function(response){
-    alert(response.statusText);
-  });
-}
-
-
-function selectForDelete(elm, cid, type, rec_id){
-  var eid = "#sel_"+cid
-  if ($(eid).prop("checked")){
-    var item = {}
-    item['id'] = cid
-    item['type'] = type
-    item['rec_id'] = rec_id
-    deleteArray.push(item)
   }else{
-    for (var i = 0; i < deleteArray.length; i++){
-      if (deleteArray[i].id == cid){
-        deleteArray.splice(i, 1)
-        break
-      }
+    for (var i = 0; i < len; i++) {
+        elems[i].disabled = false;
     }
   }
 }
+
+function confirmRemove(id){
+  var r = confirm("Do you really want to remove this call from local database?");
+  if (r == true) {
+    removeFromLocalDB(id)
+  }
+}
+
+function removeFromLocalDB(id){
+  var configs = {}
+  configs['id'] = id
+  var url = "remove"
+  var posting = $.post(url, configs)
+  posting.done(function(response) {
+    var res = JSON.parse(response)
+    if (res.status == "error") {
+      alert("error")
+    }else{
+      window.location = "recordedcalls"
+    }
+  });
+  posting.fail(function(response){
+    alert(response.statusText)
+  });
+}
+
+function confirmDelete(id, type, rec_id) {
+  var r = confirm("Do you really want to delete this call from RingCentral call log database?");
+  if (r == true) {
+    deleteFromDB(id, type, rec_id)
+  }
+}
+
+
 function confirmRemoveSelectedItemsFromDB(){
   var r = confirm("Do you really want to remove selected calls from local database?");
   if (r == true) {
@@ -248,7 +180,7 @@ function confirmRemoveSelectedItemsFromDB(){
 }
 
 function confirmDeleteSelectedItemsFromCallLogDb(){
-  if (deleteArray.length <= 0 )
+  if (contactArray.length <= 0 )
     return
   var r = confirm("Do you really want to delete selected calls from RingCentral call log database?");
   if (r == true) {
@@ -258,7 +190,7 @@ function confirmDeleteSelectedItemsFromCallLogDb(){
 
 function removeSelectedItemsFromLocalDB(){
   var configs = {}
-  configs['calls'] = JSON.stringify(deleteArray)
+  configs['calls'] = JSON.stringify(contactArray)
   var url = "remove"
   var posting = $.post(url, configs)
   posting.done(function(response) {
@@ -276,7 +208,7 @@ function removeSelectedItemsFromLocalDB(){
 
 function deleteSelectedItemsFromCallLogDb(){
   var configs = {}
-  configs['calls'] = JSON.stringify(deleteArray)
+  configs['calls'] = JSON.stringify(contactArray)
   var url = "delete"
   var posting = $.post(url, configs)
   posting.done(function(response) {
@@ -290,8 +222,4 @@ function deleteSelectedItemsFromCallLogDb(){
   posting.fail(function(response){
     alert(response.statusText)
   });
-}
-
-function extensionsChanged(e) {
-  isExtensionsChanged = true
 }

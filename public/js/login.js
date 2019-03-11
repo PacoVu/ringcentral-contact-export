@@ -3,15 +3,15 @@ var OAuthCode = function(authUri, redirectUri) {
       this.loginPopupUri(authUri, redirectUri);
     }
     this.loginPopupUri  = function(authUri, redirectUri) {
-      //alert(redirectUri)
       var win         = window.open(authUri, 'windowname1', 'width=800, height=600');
       var pollOAuth   = window.setInterval(function() {
         try {
-          //alert(win.document.URL)
           if (win.document.URL.indexOf(redirectUri) != -1) {
             window.clearInterval(pollOAuth);
             win.close();
-            window.location.href = "readcontact"
+            window.setTimeout(function() {
+              window.location.href = "readcontact"
+            }, 100)
           }
         } catch(e) {
           console.log(e)

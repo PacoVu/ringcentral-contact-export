@@ -30,27 +30,6 @@ function getUserIndexByExtensionId(extId){
 
 var router = module.exports = {
   loadLogin: function(req, res){
-    if (req.query.env == "demo"){
-      var user = null
-      var index = getUserIndex(100)
-      if (index < 0){
-        req.session.userId = 100;
-        user = new User(100, req.query.env)
-        user.setExtensionId(100)
-        users.push(user)
-      }else{
-        user = users[index]
-        req.session.userId = 100;
-        req.session.extensionId = 100;
-      }
-      user.loadDemo()
-      res.render('readlog', {
-        userName: "Demo Guy",
-        userLevel: 'demo',
-        autoProcessingOn: false
-      })
-      return
-    }
     if (req.session.userId == 0) {
       console.log("load login page")
       var id = new Date().getTime()
@@ -61,7 +40,7 @@ var router = module.exports = {
       var p = user.getPlatform()
       if (p != null){
         res.render('login', {
-          authorize_uri: p.loginUrl({ // authUrl
+          authorize_uri: p.loginUrl({
             brandId: process.env.RINGCENTRAL_BRAND_ID,
             redirectUri: process.env.RC_APP_REDIRECT_URL
           }),
@@ -73,7 +52,7 @@ var router = module.exports = {
       console.log("Must be a reload page")
       var index = getUserIndex(req.session.userId)
       if (index >= 0)
-        users[index].loadContactsPage(req, res)
+        users[index].loadReadContactPage(req, res)
       else{
         this.forceLogin(req, res)
       }
@@ -83,13 +62,13 @@ var router = module.exports = {
     console.log("FORCE LOGIN")
     req.session.destroy();
     res.render('index')
-    //users[index].forceLogin(req, res)
   },
   login: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
     users[index].login(req, res, function(err, extensionId){
+      // result contain extensionId. Use it to check for orphan user and remove it
       if (!err){
         console.log("USERLENGTH: " + users.length)
         for (var i = 0; i < users.length; i++){
@@ -121,48 +100,29 @@ var router = module.exports = {
     })
 
   },
-  readExtensionAsync: function(req, res){
+  exportContactsAsync: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
-    //users[index].readCompanyContactsAsync(req, res)
-    //res.send('{"status":"ok", "message":"return nothing"}')
-    var thisRes = res
-    users[index].readExtensionAsync(req, function(err, data){
-      if (!err){
-        console.log("SUCCESS")
-        console.log(JSON.stringify(data))
-        thisRes.send(JSON.stringify(data))
-      }
-    })
+    users[index].exportCompanyContactsAsync(req, res)
   },
-  // use async
   readCompanyContactsAsync: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
+    users[index].readCompanyContactsSync(req, res)
     //users[index].readCompanyContactsAsync(req, res)
-    //res.send('{"status":"ok", "message":"return nothing"}')
-    users[index].readCompanyContacts(req, res, function(err, data){
-      if (!err){
-        console.log("SUCCESS")
-        console.log(JSON.stringify({"status":"ok","message":data}))
-        //res.send('{"status":"ok", "message":"return nothing"}')
-        //res.send(JSON.stringify({"status":"ok","message":data}))
-        /*
-        res.render('readcontact', {
-          userLevel: users[index].getUserLevel(),
-          userName: users[index].userName,
-          contactList: data
-        })
-        */
-      }
-    })
   },
-  loadContactsPage: function(req, res){
+  loadReadContactPage: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
-    users[index].loadContactsPage(req, res)
+    users[index].loadReadContactPage(req, res)
+  },
+  loadExportContactPage: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].loadExportContactPage(req, res)
   }
 }

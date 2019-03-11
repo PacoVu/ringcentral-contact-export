@@ -1,4 +1,5 @@
 var path = require('path')
+var util = require('util')
 
 if('production' !== process.env.LOCAL_ENV )
   require('dotenv').load();
@@ -24,9 +25,22 @@ server.listen(port);
 console.log("listen to port " + port)
 var router = require('./router');
 
+app.get('/test', function (req, res) {
+
+  res.render('test')
+
+})
 app.get('/', function (req, res) {
   console.log('load option page /')
   res.render('index')
+  /*
+  console.log('login to /')
+  req.session.cookie = { maxAge: 24 * 60 * 60 * 1000 }
+  if (!req.session.hasOwnProperty("userId"))
+    req.session.userId = 0;
+  console.log("SESSION:" + JSON.stringify(req.session))
+  router.loadLogin(req, res)
+  */
 })
 app.get('/login', function (req, res) {
   console.log('login to /')
@@ -47,6 +61,16 @@ app.get('/index', function (req, res) {
   }else {
     res.render('index')
   }
+  /*
+  console.log('login to from index')
+  req.session.cookie = { maxAge: 24 * 60 * 60 * 1000 }
+  if (!req.session.hasOwnProperty("userId")){
+    console.log('reset user id from index?')
+    req.session.userId = 0;
+  }
+  console.log("SESSION:" + JSON.stringify(req.session))
+  router.loadLogin(req, res)
+  */
 })
 
 app.get('/logout', function (req, res) {
@@ -55,30 +79,60 @@ app.get('/logout', function (req, res) {
 })
 
 app.get('/readcontact', function (req, res) {
-  console.log('readcontact')
-  console.log("SESSION:" + JSON.stringify(req.session))
+  console.log('loadReadContactPage')
+  //console.log("SESSION:" + JSON.stringify(req.session))
   //console.log(req.query.level + '/' + req.query.user_id)
   //router.setUser(req.query.level, req.query.user_id)
-  router.loadContactsPage(req, res)
+  router.loadReadContactPage(req, res)
+})
+
+app.get('/exportcontact', function (req, res) {
+  console.log('loadExportContactPage')
+  //console.log("SESSION:" + JSON.stringify(req.session))
+  //console.log(req.query.level + '/' + req.query.user_id)
+  //router.setUser(req.query.level, req.query.user_id)
+  router.loadExportContactPage(req, res)
 })
 
 app.get('/oauth2callback', function(req, res){
   console.log("callback redirected")
-  console.log("SESSION:" + JSON.stringify(req.session))
+  //console.log("SESSION:" + JSON.stringify(req.session))
   router.login(req, res)
+})
+
+app.post('/readcompanycontacts', function (req, res) {
+  console.log("readCompanyContactsAsync")
+  if (!req.session.hasOwnProperty("configs")){
+    if (req.body.accessKeyId == "" ||
+        req.body.secretAccessKey == "" ||
+        req.body.region == ""){
+      console.log("missing credentials")
+      return res.send('{"status":"failed","message":"Please provide AWS credentials."}')
+    }else{
+      req.session.configs = req.body
+    }
+  }
+  router.readCompanyContactsAsync(req, res)
+})
+
+app.post('/exportcontacts', function (req, res) {
+  console.log('exportcontacts')
+  router.exportContactsAsync(req, res)
 })
 
 app.get('/about', function (req, res) {
   res.render('about')
 })
 
-
-app.post('/readcompanycontacts', function (req, res) {
-  console.log("readCompanyContactsAsync")
+app.post('/readcontacts', function (req, res) {
+  console.log("readCallRecordingsAsync")
+  if (!req.session.hasOwnProperty("configs")){
+    if (req.body.accessKeyId == "" ||
+        req.body.secretAccessKey == "" ||
+        req.body.region == "")
+      return res.send('{"status":"failed","message":"Please provide AWS credentials."}')
+    else
+      req.session.configs = req.body
+  }
   router.readCompanyContactsAsync(req, res)
-})
-
-app.post('/test', function (req, res) {
-  console.log("test")
-  router.readExtensionAsync(req, res)
 })
