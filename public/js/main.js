@@ -6,7 +6,7 @@ function init() {
   height += $("#button_header").height()
   height += $("#table_header").height()
   height += $("#footer").height()
-  var h = $(window).height() - (height + 50);
+  var h = $(window).height() - (height + 40);
   $("#contact_list").height(h)
 
   window.onresize = function() {
@@ -14,7 +14,7 @@ function init() {
     height += $("#button_header").height()
     height += $("#table_header").height()
     height += $("#footer").height()
-    var h = $(window).height() - (height + 50);
+    var h = $(window).height() - (height + 40);
     $("#contact_list").height(h)
   }
 
