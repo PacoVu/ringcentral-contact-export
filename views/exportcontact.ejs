@@ -37,10 +37,18 @@
   </nav>
 
   <section id='content'>
-    <div id="button_header" class="row">
+    <div id="button_header" class="row col-xs-12">
       <button id="export_contact" class="btn-rc" onclick="exportContacts()">Export</button>
       <span id="indication"></span>&nbsp;&nbsp;
       <img src='./img/loading.gif' id="exportIcon" style='margin-left:20px;width:30px;height:30px;display: none'></img>
+      <div style="display: inline">
+          <input type="text" class="search-input" placeholder="Last name ... first name" oninput="makeSearch()" id="search" value="">
+          <img src="./img/search.jpeg" class="search-icon" />
+          <!--div id="search_result" class="show"-->
+            <span id="search_items"></span>&nbsp;&nbsp;
+            <a id="next" href="#" onclick="scrollToSeachItem();return false;" style="display: none">Next</a>
+          <!--/div-->
+      </div>
     </div>
         <div id="table_header" class="row col-xs-12 table-header">
           <table class="table">
@@ -53,25 +61,25 @@
                 <th width="20%">Last name</th>
                 <th width="30%">Display name</th>
                 <th width="18%">Direct number</th>
-                <th width="10%">Exist In AWS</th>
+                <th width="10%">Exist in AWS</th>
               </tr>
             </thead>
           </table>
         </div>
         <div id="contact_list" class="row col-xs-12 scrollable_contactlist">
-          <table class="table">
+          <table id="contacts_table" class="table">
             <tbody id="contact_items">
               <% for (var i = 0; i < contactList.length; i++) { %>
               <% if (contactList[i]['ExistInAWS']) { %>
                 <% if (contactList[i]['AddDivider']) { %>
-                  <tr class="tr-inactive divider">
+                  <tr id="row_<%= i %>" class="tr-inactive divider">
                 <% } else { %>
-                  <tr class="tr-inactive">
+                  <tr id="row_<%= i %>" class="tr-inactive">
                 <% } %>
               <% } else if (contactList[i]['AddDivider']) { %>
-                <tr class="divider">
+                <tr id="row_<%= i %>" class="divider">
               <% } else { %>
-                <tr>
+                <tr id="row_<%= i %>">
               <% } %>
                   <td width="2%" class="td-active">
                     <% if (contactList[i]['ExistInAWS'] == false) { %>
@@ -85,7 +93,7 @@
                     <div><%= contactList[i]['LastName'] %></div>
                   </td>
                   <td width="30%" class="td-active">
-                    <div><%= contactList[i]['DisplayName'] %></div>
+                    <div id="cell_<%= i %>"><%= contactList[i]['DisplayName'] %></div>
                   </td>
                   <td width="18%" class="td-active">
                     <div><%= contactList[i]['PhoneNumber'] %></div>

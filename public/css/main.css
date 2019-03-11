@@ -81,7 +81,26 @@ body {
   color: #777777!important;
   font-size: 13px;
 }
-
+#button_header {
+  margin-bottom: 10px;
+}
+.search-input {
+  background-color: #fff;
+  border-radius: 3px;
+}
+.search-icon {
+  display: inline;
+  top: 50%;
+  height: 16px;
+  right: 5px;
+  margin-top: -8px;
+}
+.show {
+  display: inline;
+}
+.hide {
+  display: none;
+}
 /*
 input, select {
     color: black;

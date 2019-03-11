@@ -168,7 +168,11 @@ User.prototype = {
                   return res.send({"status":"failed","message":"Invalid AWS credentials"})
                 }else{
                     console.log(data);
-                    p.get('/restapi/v1.0/account/~/directory/entries')
+                    var params = {
+                      'type': "User",
+                      'perPage': "all"
+                    }
+                    p.get('/restapi/v1.0/account/~/directory/entries', params)
                       .then(function(resp){
                         var json = resp.json()
                         thisUser.contactList = [];
@@ -177,36 +181,43 @@ User.prototype = {
                           console.log(JSON.stringify(record))
                           console.log("------")
                           if (record.hasOwnProperty("phoneNumbers")) {
-                            var lineId = 0
-                            for (var i=0; i < record.phoneNumbers.length; i++)  {
-                              if (record.phoneNumbers[i].usageType == "DirectNumber") {
-                                var phoneNumber = record.phoneNumbers[i].phoneNumber
-                                var displayName = record.lastName + " " + record.firstName
-                                var params = {}
-                                params['FirstName'] = record.firstName,
-                                params['DisplayName'] = (lineId == 0) ? displayName : (displayName + " - line " + lineId)
-                                params['LastName'] = record.lastName,
-                                params['PhoneNumber'] = phoneNumber
-                                params['Selected'] = false
-                                params['Id'] = countId
-                                countId++
-                                var numberExisted = false
-                                for (var contact of data['Contacts']){
-                                    if (contact['PhoneNumber'] == phoneNumber){
-                                    //if (contact['DisplayName'] == displayName){
-                                      console.log("number existed: " + contact['PhoneNumber'] + "/" + phoneNumber)
-                                      numberExisted = true
-                                      break;
-                                    }
+                            if (record.hasOwnProperty("lastName") || record.hasOwnProperty("firstName")) {
+                              var lineId = 0
+                              for (var i=0; i < record.phoneNumbers.length; i++)  {
+                                if (record.phoneNumbers[i].usageType == "DirectNumber") {
+                                  var phoneNumber = record.phoneNumbers[i].phoneNumber
+                                  var lName = (record.hasOwnProperty("lastName")) ? record.lastName : ""
+                                  var fName = (record.hasOwnProperty("firstName")) ? record.firstName : ""
+                                  var displayName = lName + " " + fName
+                                  displayName = displayName.trim()
+                                  var params = {}
+                                  params['FirstName'] = fName
+                                  params['LastName'] = lName
+                                  params['DisplayName'] = (lineId == 0) ? displayName : (displayName + " - line " + lineId)
+                                  params['PhoneNumber'] = phoneNumber
+                                  params['Selected'] = false
+                                  params['Id'] = countId
+                                  countId++
+                                  var numberExisted = false
+                                  for (var contact of data['Contacts']){
+                                      if (contact['PhoneNumber'] == phoneNumber){
+                                      //if (contact['DisplayName'] == displayName){
+                                        console.log("number existed: " + contact['PhoneNumber'] + "/" + phoneNumber)
+                                        numberExisted = true
+                                        break;
+                                      }
+                                  }
+                                  params['ExistInAWS'] = numberExisted
+                                  if (i == record.phoneNumbers.length - 1)
+                                    params['AddDivider'] = true
+                                  else
+                                    params['AddDivider'] = false
+                                  thisUser.contactList.push(params);
+                                  lineId++
                                 }
-                                params['ExistInAWS'] = numberExisted
-                                if (i == record.phoneNumbers.length - 1)
-                                  params['AddDivider'] = true
-                                else
-                                  params['AddDivider'] = false
-                                thisUser.contactList.push(params);
-                                lineId++
                               }
+                            }else{
+                              console.log("contact has no name at all")
                             }
                           }else{
                             console.log("contact has no phoneNumbers at all")

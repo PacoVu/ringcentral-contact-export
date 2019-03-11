@@ -25,6 +25,46 @@ function init() {
   }
   $("#indication").text("Selected: " + 0 +"/" + totalSelectableContacts + " contacts.")
 }
+var searchRows = []
+var searchIndex = 0
+var currentCell = ""
+function makeSearch(){
+  searchRows = []
+  searchIndex = 0
+  var name = $("#search").val()
+  if (name != ""){
+    for (var i=0; i<window.contactList.length; i++){
+      var fullName = window.contactList[i].DisplayName
+      if (fullName.search(new RegExp(name, "i")) != -1) {
+         var id ="#row_" + i
+         searchRows.push(id)
+      }
+    }
+  }
+  scrollToSeachItem()
+}
+function scrollToSeachItem(){
+  if (searchRows.length){
+    var cellId = ""
+    if (currentCell != ""){
+      $(currentCell).css('background-color', "white")
+    }
+    $(searchRows[searchIndex])[0].scrollIntoView();
+    currentCell = searchRows[searchIndex].replace("row_", "cell_")
+    searchIndex++
+    $("#search_items").text("Result: " + searchIndex + "/" + searchRows.length)
+    $("#next").css('display', 'inline');
+    if (searchIndex >= searchRows.length)
+      searchIndex = 0
+    $(currentCell).css('background-color', "yellow")
+  }else{
+    $("#next").css('display', 'none');
+    $("#search_items").text("Not found!")
+    if (currentCell != ""){
+      $(currentCell).css('background-color', "white")
+    }
+  }
+}
 
 function exportContacts(){
   var contactList = []
