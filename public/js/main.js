@@ -47,7 +47,7 @@ function scrollToSeachItem(){
   if (searchRows.length){
     var cellId = ""
     if (currentCell != ""){
-      $(currentCell).css('background-color', "white")
+      $(currentCell).css('background-color', "")
     }
     $(searchRows[searchIndex])[0].scrollIntoView();
     currentCell = searchRows[searchIndex].replace("row_", "cell_")
@@ -61,7 +61,7 @@ function scrollToSeachItem(){
     $("#next").css('display', 'none');
     $("#search_items").text("Not found!")
     if (currentCell != ""){
-      $(currentCell).css('background-color', "white")
+      $(currentCell).css('background-color', "")
     }
   }
 }

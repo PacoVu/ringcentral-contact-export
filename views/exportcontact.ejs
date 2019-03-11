@@ -57,8 +57,8 @@
                 <th width="2%">
                   <input type=checkbox width=10 height=10 onchange="selectionHandler(this)"/>
                 </th>
-                <th width="20%">First name</th>
                 <th width="20%">Last name</th>
+                <th width="20%">First name</th>
                 <th width="30%">Display name</th>
                 <th width="18%">Direct number</th>
                 <th width="10%">Exist in AWS</th>
@@ -87,10 +87,10 @@
                     <% } %>
                   </td>
                   <td width="20%" class="td-active">
-                    <div><%= contactList[i]['FirstName'] %></div>
+                    <div><%= contactList[i]['LastName'] %></div>
                   </td>
                   <td width="20%" class="td-active">
-                    <div><%= contactList[i]['LastName'] %></div>
+                    <div><%= contactList[i]['FirstName'] %></div>
                   </td>
                   <td width="30%" class="td-active">
                     <div id="cell_<%= i %>"><%= contactList[i]['DisplayName'] %></div>
