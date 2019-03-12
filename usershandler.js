@@ -50,24 +50,14 @@ User.prototype = {
     getPlatform: function(){
       return this.rc_platform.getPlatform()
     },
-    getUserLevel: function(){
-      var userLevel = ''
-        if (this.isAdmin())
-          userLevel = 'admin'
-        else
-        userLevel = 'standard'
-      return userLevel
-    },
     loadReadContactPage: function(req, res){
       res.render('readcontact', {
-          userLevel: this.getUserLevel(),
           userName: this.getUserName(),
           contactList: this.contactList
         })
     },
     loadExportContactPage: function(req, res){
       res.render('exportcontact', {
-          userLevel: this.getUserLevel(),
           userName: this.getUserName(),
           contactList: this.contactList
       })

@@ -25,22 +25,9 @@ server.listen(port);
 console.log("listen to port " + port)
 var router = require('./router');
 
-app.get('/test', function (req, res) {
-
-  res.render('test')
-
-})
 app.get('/', function (req, res) {
   console.log('load option page /')
   res.render('index')
-  /*
-  console.log('login to /')
-  req.session.cookie = { maxAge: 24 * 60 * 60 * 1000 }
-  if (!req.session.hasOwnProperty("userId"))
-    req.session.userId = 0;
-  console.log("SESSION:" + JSON.stringify(req.session))
-  router.loadLogin(req, res)
-  */
 })
 app.get('/login', function (req, res) {
   console.log('login to /')
@@ -61,16 +48,6 @@ app.get('/index', function (req, res) {
   }else {
     res.render('index')
   }
-  /*
-  console.log('login to from index')
-  req.session.cookie = { maxAge: 24 * 60 * 60 * 1000 }
-  if (!req.session.hasOwnProperty("userId")){
-    console.log('reset user id from index?')
-    req.session.userId = 0;
-  }
-  console.log("SESSION:" + JSON.stringify(req.session))
-  router.loadLogin(req, res)
-  */
 })
 
 app.get('/logout', function (req, res) {
@@ -80,23 +57,16 @@ app.get('/logout', function (req, res) {
 
 app.get('/readcontact', function (req, res) {
   console.log('loadReadContactPage')
-  //console.log("SESSION:" + JSON.stringify(req.session))
-  //console.log(req.query.level + '/' + req.query.user_id)
-  //router.setUser(req.query.level, req.query.user_id)
   router.loadReadContactPage(req, res)
 })
 
 app.get('/exportcontact', function (req, res) {
   console.log('loadExportContactPage')
-  //console.log("SESSION:" + JSON.stringify(req.session))
-  //console.log(req.query.level + '/' + req.query.user_id)
-  //router.setUser(req.query.level, req.query.user_id)
   router.loadExportContactPage(req, res)
 })
 
 app.get('/oauth2callback', function(req, res){
   console.log("callback redirected")
-  //console.log("SESSION:" + JSON.stringify(req.session))
   router.login(req, res)
 })
 
@@ -121,7 +91,8 @@ app.post('/exportcontacts', function (req, res) {
 })
 
 app.get('/about', function (req, res) {
-  res.render('about')
+  //res.render('about')
+  router.loadAboutPage(req, res)
 })
 
 app.post('/readcontacts', function (req, res) {

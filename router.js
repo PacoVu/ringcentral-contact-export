@@ -98,7 +98,6 @@ var router = module.exports = {
       console.log("user length after: " + users.length)
       thisObj.forceLogin(req, res)
     })
-
   },
   exportContactsAsync: function(req, res){
     var index = getUserIndex(req.session.userId)
@@ -112,6 +111,14 @@ var router = module.exports = {
       return this.forceLogin(req, res)
     users[index].readCompanyContactsSync(req, res)
     //users[index].readCompanyContactsAsync(req, res)
+  },
+  loadAboutPage: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    res.render('about', {
+      userName: users[index].getUserName()
+    })
   },
   loadReadContactPage: function(req, res){
     var index = getUserIndex(req.session.userId)
