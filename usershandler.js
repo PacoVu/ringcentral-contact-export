@@ -170,47 +170,55 @@ User.prototype = {
                         for (var record of json.records){
                           console.log(JSON.stringify(record))
                           console.log("------")
-                          if (record.hasOwnProperty("phoneNumbers")) {
-                            if (record.hasOwnProperty("lastName") || record.hasOwnProperty("firstName")) {
-                              var lineId = 0
-                              for (var i=0; i < record.phoneNumbers.length; i++)  {
-                                if (record.phoneNumbers[i].usageType == "DirectNumber") {
-                                  var phoneNumber = record.phoneNumbers[i].phoneNumber
-                                  var lName = (record.hasOwnProperty("lastName")) ? record.lastName : ""
-                                  var fName = (record.hasOwnProperty("firstName")) ? record.firstName : ""
-                                  var displayName = lName + " " + fName
-                                  displayName = displayName.trim()
-                                  var params = {}
-                                  params['FirstName'] = fName
-                                  params['LastName'] = lName
-                                  params['DisplayName'] = (lineId == 0) ? displayName : (displayName + " - line " + lineId)
-                                  params['PhoneNumber'] = phoneNumber
-                                  params['Selected'] = false
-                                  params['Id'] = countId
-                                  countId++
-                                  var numberExisted = false
-                                  for (var contact of data['Contacts']){
-                                      if (contact['PhoneNumber'] == phoneNumber){
-                                      //if (contact['DisplayName'] == displayName){
-                                        console.log("number existed: " + contact['PhoneNumber'] + "/" + phoneNumber)
-                                        numberExisted = true
-                                        break;
-                                      }
+                          if (record.status == "Enabled"){
+                            if (record.hasOwnProperty("phoneNumbers")) {
+                              if (record.hasOwnProperty("lastName") || record.hasOwnProperty("firstName")) {
+                                var lineId = 0
+                                var firstNumber = true
+                                for (var i=0; i < record.phoneNumbers.length; i++)  {
+                                  if (record.phoneNumbers[i].usageType == "DirectNumber" &&
+                                      record.phoneNumbers[i].type == "VoiceFax") {
+                                    var phoneNumber = record.phoneNumbers[i].phoneNumber
+                                    var lName = (record.hasOwnProperty("lastName")) ? record.lastName : ""
+                                    var fName = (record.hasOwnProperty("firstName")) ? record.firstName : ""
+                                    var displayName = lName + " " + fName
+                                    displayName = displayName.trim()
+                                    var params = {}
+                                    params['FirstName'] = fName
+                                    params['LastName'] = lName
+                                    params['DisplayName'] = (lineId == 0) ? displayName : (displayName + " - line " + lineId)
+                                    params['PhoneNumber'] = phoneNumber
+                                    params['Selected'] = false
+                                    params['Id'] = countId
+                                    params['ExtNum'] = record.extensionNumber
+                                    countId++
+                                    var numberExisted = false
+                                    for (var contact of data['Contacts']){
+                                        if (contact['PhoneNumber'] == phoneNumber){
+                                        //if (contact['DisplayName'] == displayName){
+                                          console.log("number existed: " + contact['PhoneNumber'] + "/" + phoneNumber)
+                                          numberExisted = true
+                                          break;
+                                        }
+                                    }
+                                    params['ExistInAWS'] = numberExisted
+                                    //if (i == record.phoneNumbers.length - 1)
+                                    if (firstNumber){
+                                      params['AddDivider'] = true
+                                      firstNumber = false
+                                    }else{
+                                      params['AddDivider'] = false
+                                    }
+                                    thisUser.contactList.push(params);
+                                    lineId++
                                   }
-                                  params['ExistInAWS'] = numberExisted
-                                  if (i == record.phoneNumbers.length - 1)
-                                    params['AddDivider'] = true
-                                  else
-                                    params['AddDivider'] = false
-                                  thisUser.contactList.push(params);
-                                  lineId++
                                 }
+                              }else{
+                                console.log("contact has no name at all")
                               }
                             }else{
-                              console.log("contact has no name at all")
+                              console.log("contact has no phoneNumbers at all")
                             }
-                          }else{
-                            console.log("contact has no phoneNumbers at all")
                           }
                         }
                         res.send('{"status":"ok","message":'+ JSON.stringify(thisUser.contactList) +'}')

@@ -60,8 +60,9 @@
                 <th width="20%">Last name</th>
                 <th width="20%">First name</th>
                 <th width="30%">Display name</th>
-                <th width="18%">Direct number</th>
-                <th width="10%">Exist in AWS</th>
+                <th width="10%">Direct number</th>
+                <th width="10%">Extension number</th>
+                <th width="8%">Exist in AWS</th>
               </tr>
             </thead>
           </table>
@@ -95,10 +96,13 @@
                   <td width="30%" class="td-active">
                     <div id="cell_<%= i %>"><%= contactList[i]['DisplayName'] %></div>
                   </td>
-                  <td width="18%" class="td-active">
+                  <td width="10%" class="td-active">
                     <div><%= contactList[i]['PhoneNumber'] %></div>
                   </td>
                   <td width="10%" class="td-active">
+                    <div><%= contactList[i]['ExtNum'] %></div>
+                  </td>
+                  <td width="8%" class="td-active">
                     <% if (contactList[i]['ExistInAWS']) { %>
                       <div>Yes</div>
                     <% } else { %>
