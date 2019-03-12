@@ -95,6 +95,10 @@ app.get('/about', function (req, res) {
   router.loadAboutPage(req, res)
 })
 
+app.get('/reloadcontacts', function (req, res) {
+  router.reloadContactsPage(req, res)
+})
+
 app.post('/readcontacts', function (req, res) {
   console.log("readCallRecordingsAsync")
   if (!req.session.hasOwnProperty("configs")){

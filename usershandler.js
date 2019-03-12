@@ -11,7 +11,8 @@ function User(id, mode) {
   this.extIndex = 0
   this.token_json = {};
   this.userName = ""
-
+  this.sortFirstNameDirection = "none"
+  this.sortLastNameDirection = "none"
   this.contactList = []
   this.mainCompanyPhoneNumber = ""
   this.ASK = require('aws-sdk');
@@ -59,8 +60,42 @@ User.prototype = {
     loadExportContactPage: function(req, res){
       res.render('exportcontact', {
           userName: this.getUserName(),
+          sortLastName: this.sortLastNameDirection,
+          sortFirstName: this.sortFirstNameDirection,
           contactList: this.contactList
       })
+    },
+    reloadContactsPage: function(req, res){
+      console.log("reloadContactsPage")
+      if (this.contactList.length){
+        if (req.query.sortfield == 'lastname'){
+          if (this.sortLastNameDirection == "ascend"){
+            this.sortLastNameDirection = "descend"
+            this.contactList.sort(sortLastNameDescend)
+          }else{
+            this.sortLastNameDirection = "ascend"
+            this.contactList.sort(sortLastNameAscend)
+          }
+          this.sortFirstNameDirection = "none"
+        }else if (req.query.sortfield == 'firstname'){
+          if (this.sortFirstNameDirection == "ascend"){
+            this.sortFirstNameDirection = "descend"
+            this.contactList.sort(sortFirstNameDescend)
+          }else{
+            this.sortFirstNameDirection = "ascend"
+            this.contactList.sort(sortFirstNameAscend)
+          }
+          this.sortLastNameDirection = "none"
+        }
+
+        console.log("sort by " + req.query.sortfield)
+        res.render('exportcontact', {
+          userName: this.getUserName(),
+          sortLastName: this.sortLastNameDirection,
+          sortFirstName: this.sortFirstNameDirection,
+          contactList: this.contactList
+        })
+      }
     },
     login: function(req, res, callback){
       var thisReq = req
@@ -221,7 +256,9 @@ User.prototype = {
                             }
                           }
                         }
-                        res.send('{"status":"ok","message":'+ JSON.stringify(thisUser.contactList) +'}')
+                        //thisUser.contactList.sort(sortLastName)
+                        res.send('{"status":"ok","message":"Contacts list is ready."}')
+                        //res.send('{"status":"ok","message":'+ JSON.stringify(thisUser.contactList) +'}')
                       })
                       .catch(function(e){
                         console.log("Read company contact failed")
@@ -297,6 +334,7 @@ User.prototype = {
                           },
                           function (err){
                             console.log("DONE")
+                            thisUser.contactList.sort(sortLastName)
                             res.send('{"status":"ok","message":'+ JSON.stringify(thisUser.contactList) +'}')
                             console.log("SENT")
                           })
@@ -322,5 +360,21 @@ User.prototype = {
       });
   }
 }
+function sortLastNameAscend(a,b) {
+  //return a.LastName == b.LastName ? 0 : a.LastName < b.LastName ? -1 : 1;
+  return a.LastName.localeCompare(b.LastName, 'en', {sensitivity: 'base'})
+}
+function sortFirstNameAscend(a,b) {
+  //return a.FirstName == b.FirstName ? 0 : a.FirstName < b.FirstName ? -1 : 1;
+  return a.FirstName.localeCompare(b.FirstName, 'en', {sensitivity: 'base'})
+}
 
+function sortLastNameDescend(a,b) {
+  //return a.LastName == b.LastName ? 0 : a.LastName > b.LastName ? -1 : 1;
+  return (a.LastName.localeCompare(b.LastName, 'en', {sensitivity: 'base'})) * -1
+}
+function sortFirstNameDescend(a,b) {
+  //return a.FirstName == b.FirstName ? 0 : a.FirstName > b.FirstName ? -1 : 1;
+  return (a.FirstName.localeCompare(b.FirstName, 'en', {sensitivity: 'base'})) * -1
+}
 module.exports = User;

@@ -125,6 +125,7 @@ function selectForSync(elm, id){
   }
   updateSelectionCount()
 }
+
 function updateSelectionCount(){
   var selectionCount = 0
   for (var i=0; i<window.contactList.length; i++){
@@ -165,6 +166,31 @@ function readContacts(){
   });
 }
 
+function reloadContact(sortfield){
+  //alert(sortfield)
+  //var configs = {}
+  //configs['sortfield'] = sortfield
+  var url = "reloadcontacts?sortfield=" + sortfield
+  $.get( url );
+  /*
+  var getting = $.get( url, configs );
+  getting.done(function( response ) {
+
+    var res = JSON.parse(response)
+    if (res.status != "ok") {
+      $("#readcontacts").prop("disabled", false);
+      $("#logginIcon").css('display', 'none');
+      alert(res.message)
+    }else{
+      window.location = "exportcontact"
+    }
+
+  });
+  getting.fail(function(response){
+    alert("Error. Please try again.");
+  });
+  */
+}
 function disableAllInput(disable){
   var elems = document.getElementsByTagName('button');
   var len = elems.length;

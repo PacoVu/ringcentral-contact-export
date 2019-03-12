@@ -99,6 +99,12 @@ var router = module.exports = {
       thisObj.forceLogin(req, res)
     })
   },
+  reloadContactsPage: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].reloadContactsPage(req, res)
+  },
   exportContactsAsync: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
