@@ -138,7 +138,6 @@ User.prototype = {
     },
     exportCompanyContactsAsync: function(req, res){
       // write aws credentials to temp file
-      console.log("configs: " + JSON.stringify(req.session.configs))
       var thisUser = this
       //var ASK = require('aws-sdk');
       var fileName = "aws/" + this.getExtensionId()  + "_configs.json"
@@ -147,7 +146,6 @@ User.prototype = {
               console.log(err);
               return res.send('{"status":"failed","message":"Cannot write configs file."}')
           }
-          console.log("load AWS configs");
           thisUser.ASK.config.loadFromPath("./"+fileName);
           fs.unlinkSync(fileName); // delete file immediately
           var a4b = new thisUser.ASK.AlexaForBusiness();
@@ -158,7 +156,6 @@ User.prototype = {
                   if (err){
                     return callback(null, null)
                   }else{
-                    console.log(data);           // successful response
                     return callback(null, data)
                   }
                 });
@@ -166,11 +163,86 @@ User.prototype = {
             function (err){
               console.log("DONE EXPORT")
               setTimeout(function(){
-                console.log("Update list")
-                thisUser.readCompanyContactsSync(req, res)
+                thisUser.updateCompanyContactsSync(req, res, a4b, thisUser)
               }, 1000)
             })
       })
+    },
+    updateCompanyContactsSync: function(req, res, a4b, thisUser){
+        console.log("updateCompanyContactsSync")
+        var p = thisUser.rc_platform.getPlatform()
+        a4b.searchContacts({}, function(err, data) {
+            if (err){
+              console.log("Invalid credentials");
+              return res.send({"status":"failed","message":"Invalid AWS credentials"})
+            }else{
+                console.log(data);
+                var params = {
+                  'type': "User",
+                  'perPage': "all"
+                }
+                p.get('/restapi/v1.0/account/~/directory/entries', params)
+                  .then(function(resp){
+                    var json = resp.json()
+                    thisUser.contactList = [];
+                    var countId = 0
+                    for (var record of json.records){
+                       if (record.status == "Enabled"){
+                          if (record.hasOwnProperty("phoneNumbers")) {
+                              if (record.hasOwnProperty("lastName") || record.hasOwnProperty("firstName")) {
+                                var lineId = 0
+                                var firstNumber = true
+                                for (var i=0; i < record.phoneNumbers.length; i++)  {
+                                  if (record.phoneNumbers[i].usageType == "DirectNumber" &&
+                                      record.phoneNumbers[i].type == "VoiceFax") {
+                                    var phoneNumber = record.phoneNumbers[i].phoneNumber
+                                    var lName = (record.hasOwnProperty("lastName")) ? record.lastName : ""
+                                    var fName = (record.hasOwnProperty("firstName")) ? record.firstName : ""
+                                    var displayName = lName + " " + fName
+                                    displayName = displayName.trim()
+                                    var params = {}
+                                    params['FirstName'] = fName
+                                    params['LastName'] = lName
+                                    params['DisplayName'] = (lineId == 0) ? displayName : (displayName + " - line " + lineId)
+                                    params['PhoneNumber'] = phoneNumber
+                                    params['Selected'] = false
+                                    params['Id'] = countId
+                                    params['ExtNum'] = record.extensionNumber
+                                    countId++
+                                    var numberExisted = false
+                                    for (var contact of data['Contacts']){
+                                        if (contact['PhoneNumber'] == phoneNumber){
+                                        //if (contact['DisplayName'] == displayName){
+                                          numberExisted = true
+                                          break;
+                                        }
+                                    }
+                                    params['ExistInAWS'] = numberExisted
+                                    //if (i == record.phoneNumbers.length - 1)
+                                    if (firstNumber){
+                                      params['AddDivider'] = true
+                                      firstNumber = false
+                                    }else{
+                                      params['AddDivider'] = false
+                                    }
+                                    thisUser.contactList.push(params);
+                                    lineId++
+                                  }
+                                }
+                              }
+                            }
+                        }
+                    }
+                    //thisUser.contactList.sort(sortLastName)
+                    res.send('{"status":"ok","message":"Contacts list is ready."}')
+                    //res.send('{"status":"ok","message":'+ JSON.stringify(thisUser.contactList) +'}')
+                  })
+                  .catch(function(e){
+                    console.log("Read company contact failed")
+                    res.send('{"status":"failed","message":'+ JSON.stringify(e) +'}')
+                  })
+            }
+        });
     },
     readCompanyContactsSync: function(req, res){
         console.log("readCompanyContactsSync")
@@ -181,18 +253,16 @@ User.prototype = {
                 console.log(err);
                 return res.send('{"status":"failed","message":"Cannot write configs file."}')
             }
-            console.log("load AWS configs");
             thisUser.ASK.config.loadFromPath("./"+fileName);
             fs.unlinkSync(fileName);
             var a4b = new thisUser.ASK.AlexaForBusiness();
-            console.log("search AWS contacts");
             var p = thisUser.rc_platform.getPlatform()
             a4b.searchContacts({}, function(err, data) {
                 if (err){
                   console.log("Invalid credentials");
                   return res.send({"status":"failed","message":"Invalid AWS credentials"})
                 }else{
-                    console.log(data);
+                    //console.log(data);
                     var params = {
                       'type': "User",
                       'perPage': "all"
@@ -203,8 +273,8 @@ User.prototype = {
                         thisUser.contactList = [];
                         var countId = 0
                         for (var record of json.records){
-                          console.log(JSON.stringify(record))
-                          console.log("------")
+                          //console.log(JSON.stringify(record))
+                          //console.log("------")
                           if (record.status == "Enabled"){
                             if (record.hasOwnProperty("phoneNumbers")) {
                               if (record.hasOwnProperty("lastName") || record.hasOwnProperty("firstName")) {
@@ -231,7 +301,6 @@ User.prototype = {
                                     for (var contact of data['Contacts']){
                                         if (contact['PhoneNumber'] == phoneNumber){
                                         //if (contact['DisplayName'] == displayName){
-                                          console.log("number existed: " + contact['PhoneNumber'] + "/" + phoneNumber)
                                           numberExisted = true
                                           break;
                                         }
@@ -248,11 +317,7 @@ User.prototype = {
                                     lineId++
                                   }
                                 }
-                              }else{
-                                console.log("contact has no name at all")
                               }
-                            }else{
-                              console.log("contact has no phoneNumbers at all")
                             }
                           }
                         }
@@ -277,18 +342,18 @@ User.prototype = {
                 console.log(err);
                 return res.send('{"status":"failed","message":"Cannot write configs file."}')
             }
-            console.log("load AWS configs");
+            //console.log("load AWS configs");
             thisUser.ASK.config.loadFromPath("./"+fileName);
             fs.unlinkSync(fileName);
             var a4b = new thisUser.ASK.AlexaForBusiness();
-            console.log("search AWS contacts");
+            //console.log("search AWS contacts");
             var p = thisUser.rc_platform.getPlatform()
             a4b.searchContacts({}, function(err, data) {
                 if (err){
                   console.log("Invalid credentials");
                   return res.send({"status":"failed","message":"Invalid AWS credentials"})
                 }else{
-                    console.log(data);
+                    //console.log(data);
                     p.get('/restapi/v1.0/account/~/directory/entries')
                       .then(function(resp){
                         var json = resp.json()
@@ -296,8 +361,8 @@ User.prototype = {
                         var countId = 0
                         async.each(json.records,
                           function(record, callback){
-                              console.log(JSON.stringify(record))
-                              console.log("------")
+                              //console.log(JSON.stringify(record))
+                              //console.log("------")
                               if (record.hasOwnProperty("phoneNumbers")) {
                                 var lineId = 0
                                 for (var i=0; i < record.phoneNumbers.length; i++)  {
@@ -316,7 +381,6 @@ User.prototype = {
                                     for (var contact of data['Contacts']){
                                         if (contact['PhoneNumber'] == phoneNumber){
                                         //if (contact['DisplayName'] == displayName){
-                                          console.log("number existed: " + contact['PhoneNumber'] + "/" + phoneNumber)
                                           numberExisted = true
                                           break;
                                         }
@@ -328,7 +392,6 @@ User.prototype = {
                                 }
                                 return callback(null, "next number")
                               }else{
-                                console.log("contact has no phoneNumbers at all")
                                 return callback(null, "next extension")
                               }
                           },
@@ -336,7 +399,6 @@ User.prototype = {
                             console.log("DONE")
                             thisUser.contactList.sort(sortLastName)
                             res.send('{"status":"ok","message":'+ JSON.stringify(thisUser.contactList) +'}')
-                            console.log("SENT")
                           })
                       })
                 }
