@@ -1,5 +1,7 @@
 var path = require('path')
 var util = require('util')
+var multer  = require('multer')
+var upload = multer({ dest: 'tempFile/' })
 
 if('production' !== process.env.LOCAL_ENV )
   require('dotenv').load();
@@ -27,7 +29,12 @@ var router = require('./router');
 
 app.get('/', function (req, res) {
   console.log('load option page /')
-  res.render('index')
+  //res.render('index')
+  if (req.session.extensionId != 0)
+    router.logout(req, res)
+  else{
+    res.render('index')
+  }
 })
 app.get('/login', function (req, res) {
   console.log('login to /')
@@ -55,14 +62,21 @@ app.get('/logout', function (req, res) {
   router.logout(req, res)
 })
 
-app.get('/readcontact', function (req, res) {
-  console.log('loadReadContactPage')
-  router.loadReadContactPage(req, res)
+app.get('/loadsmspage', function (req, res) {
+  console.log('loadSendSMSPage')
+  if (req.session.extensionId != 0)
+    router.loadSendSMSPage(req, res)
+  else{
+    res.render('index')
+  }
 })
 
-app.get('/exportcontact', function (req, res) {
-  console.log('loadExportContactPage')
-  router.loadExportContactPage(req, res)
+app.get('/about', function (req, res) {
+  router.loadAboutPage(req, res)
+})
+
+app.get('/getresult', function (req, res) {
+  router.getSendSMSResult(req, res)
 })
 
 app.get('/oauth2callback', function(req, res){
@@ -70,52 +84,12 @@ app.get('/oauth2callback', function(req, res){
   router.login(req, res)
 })
 
-app.post('/readcompanycontacts', function (req, res) {
-  console.log("readCompanyContactsAsync")
-  var configs = {
-    "accessKeyId": process.env.AWS_KEY,
-    "secretAccessKey": process.env.AWS_SECRET,
-    "region": "us-east-1"
-  }
-  /*
-  if (!req.session.hasOwnProperty("configs")){
-    if (req.body.accessKeyId == "" ||
-        req.body.secretAccessKey == "" ||
-        req.body.region == ""){
-      console.log("missing credentials")
-      return res.send('{"status":"failed","message":"Please provide AWS credentials."}')
-    }else{
-      req.session.configs = req.body
-    }
-  }
-  */
-  req.session.configs = configs
-  router.readCompanyContactsAsync(req, res)
+app.post('/sendmessage', upload.single('attachment'), function (req, res) {
+   console.log("Send a message");
+   router.sendSMSMessage(req, res)
 })
 
-app.post('/exportcontacts', function (req, res) {
-  console.log('exportcontacts')
-  router.exportContactsAsync(req, res)
-})
-
-app.get('/about', function (req, res) {
-  //res.render('about')
-  router.loadAboutPage(req, res)
-})
-
-app.get('/reloadcontacts', function (req, res) {
-  router.reloadContactsPage(req, res)
-})
-
-app.post('/readcontacts', function (req, res) {
-  console.log("readCallRecordingsAsync")
-  if (!req.session.hasOwnProperty("configs")){
-    if (req.body.accessKeyId == "" ||
-        req.body.secretAccessKey == "" ||
-        req.body.region == "")
-      return res.send('{"status":"failed","message":"Please provide AWS credentials."}')
-    else
-      req.session.configs = req.body
-  }
-  router.readCompanyContactsAsync(req, res)
+app.post('/sendsms', function (req, res) {
+  console.log("sendsms")
+  router.sendSMSMessage(req, res)
 })

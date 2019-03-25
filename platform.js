@@ -67,7 +67,7 @@ RCPlatform.prototype = {
       return this.platform
     var timestamp = Date.now() / 1000
     var consumedTime = (timestamp - token.login_timestamp)
-    console.log("CONSUMED: " + consumedTime)
+    //console.log("CONSUMED: " + consumedTime)
     token.login_timestamp = timestamp
     token.expires_in = token.expires_in - consumedTime
     if (token.expires_in < 0)
@@ -86,11 +86,11 @@ RCPlatform.prototype = {
     this.platform.auth().setData(data)
 
     if (this.platform.auth().accessTokenValid()) { // access token is still valid
-      console.log("ACCESS TOKEN VALID: " + token.expires_in)
+      //console.log("ACCESS TOKEN VALID: " + token.expires_in)
       return this.platform
     }else if (this.platform.auth().refreshTokenValid()) {
       // access token expired => check refresh_token
-      console.log("ACCESS TOKEN EXPIRED: " + token.expires_in)
+      //console.log("ACCESS TOKEN EXPIRED: " + token.expires_in)
       // refresh token
       this.platform.on(this.platform.events.refreshError, function(e){
         console.log("CAN'T REFRESF: " + e.message)
@@ -103,7 +103,7 @@ RCPlatform.prototype = {
         token.access_token = data.access_token
         token.refresh_token_expires_in = data.refresh_token_expires_in
         token.login_timestamp = Date.now() / 1000
-        console.log("NEW TOKEN: " + JSON.stringify(token))
+        //console.log("NEW TOKEN: " + JSON.stringify(token))
         this.token_json = token
       });
       this.platform.refresh()
