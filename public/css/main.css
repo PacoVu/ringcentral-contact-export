@@ -84,22 +84,28 @@ body {
 #button_header {
   margin-bottom: 10px;
 }
-.search-input {
-  background-color: #fff;
-  border-radius: 3px;
+.label-input {
+  min-width: 220px;
 }
-.search-icon {
-  display: inline;
-  top: 50%;
-  height: 16px;
-  right: 5px;
-  margin-top: -8px;
+.text-input {
+  margin-top: 10px;;
 }
 .show {
   display: inline;
 }
 .hide {
   display: none;
+}
+#success{
+  color: green;
+}
+#failure{
+  color: red;
+}
+#invalid-numbers{
+  height: 100px;
+  max-height: 100px;
+  overflow: scroll;
 }
 /*
 input, select {
