@@ -72,12 +72,15 @@ app.get('/oauth2callback', function(req, res){
 
 app.post('/readcompanycontacts', function (req, res) {
   console.log("readCompanyContactsAsync")
+  /*
   var configs = {
     "accessKeyId": process.env.AWS_KEY,
     "secretAccessKey": process.env.AWS_SECRET,
     "region": "us-east-1"
   }
-  /*
+  req.session.configs = configs
+  */
+
   if (!req.session.hasOwnProperty("configs")){
     if (req.body.accessKeyId == "" ||
         req.body.secretAccessKey == "" ||
@@ -88,8 +91,6 @@ app.post('/readcompanycontacts', function (req, res) {
       req.session.configs = req.body
     }
   }
-  */
-  req.session.configs = configs
   router.readCompanyContactsAsync(req, res)
 })
 
@@ -119,3 +120,6 @@ app.post('/readcontacts', function (req, res) {
   }
   router.readCompanyContactsAsync(req, res)
 })
+/*
+
+*/
