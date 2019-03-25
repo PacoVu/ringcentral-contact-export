@@ -3,11 +3,11 @@ require('dotenv').load()
 var users = []
 
 function getUserIndex(id){
-  //console.log("USERS LENGTH:" + users.length)
+  console.log("USERS LENGTH:" + users.length)
   for (var i=0; i<users.length; i++){
     var user = users[i]
     if (user != null){
-      //console.log("USER ID:" + user.getUserId())
+      console.log("USER ID:" + user.getUserId())
       if (id == user.getUserId()){
         return i
       }
@@ -17,10 +17,10 @@ function getUserIndex(id){
 }
 
 function getUserIndexByExtensionId(extId){
-  //console.log("USERS LENGTH:" + users.length)
+  console.log("USERS LENGTH:" + users.length)
   for (var i=0; i<users.length; i++){
     var user = users[i]
-    //console.log("EXTENSiON ID:" + user.getExtensionId())
+    console.log("EXTENSiON ID:" + user.getExtensionId())
     if (extId == user.getExtensionId()){
       return i
     }
@@ -52,7 +52,7 @@ var router = module.exports = {
       console.log("Must be a reload page")
       var index = getUserIndex(req.session.userId)
       if (index >= 0)
-        users[index].loadSendSMSPage(req, res)
+        users[index].loadReadContactPage(req, res)
       else{
         this.forceLogin(req, res)
       }
@@ -99,18 +99,24 @@ var router = module.exports = {
       thisObj.forceLogin(req, res)
     })
   },
-  getSendSMSResult: function(req, res){
+  reloadContactsPage: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
-    users[index].getSendSMSResult(req, res)
+    users[index].reloadContactsPage(req, res)
   },
-  sendSMSMessage: function(req, res){
+  exportContactsAsync: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
-    //users[index].sendSMSMessageAsync(req, res)
-    users[index].sendSMSMessageSync(req, res)
+    users[index].exportCompanyContactsAsync(req, res)
+  },
+  readCompanyContactsAsync: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].readCompanyContactsSync(req, res)
+    //users[index].readCompanyContactsAsync(req, res)
   },
   loadAboutPage: function(req, res){
     var index = getUserIndex(req.session.userId)
@@ -120,10 +126,16 @@ var router = module.exports = {
       userName: users[index].getUserName()
     })
   },
-  loadSendSMSPage: function(req, res){
+  loadReadContactPage: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
-    users[index].loadSendSMSPage(req, res)
+    users[index].loadReadContactPage(req, res)
+  },
+  loadExportContactPage: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].loadExportContactPage(req, res)
   }
 }
